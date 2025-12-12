@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h1>Batch Generator</h1>
+    <p>Generate up to <strong>10</strong> QR codes at once. Put each URL/Text on a new line.</p>
+
+    {% if error %}
+    <div style="background-color: #cf6679; color: black; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+        <div class="form-group">
+            <textarea name="batch_text" rows="10" placeholder="https://site1.com&#10;https://site2.com&#10;Text Message 3..." style="width: 100%; background: #2C2C2C; color: white; border: 1px solid #444; padding: 10px;"></textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Size:</label>
+                <input type="range" name="size" min="5" max="20" value="10">
+            </div>
+            <div class="form-group">
+                <label>Color:</label>
+                <input type="color" name="color" value="#000000" style="width: 100%; height: 40px;">
+            </div>
+        </div>
+
+        <button type="submit" class="btn-primary">Generate Batch</button>
+    </form>
+
+    {% if qr_codes %}
+    <div class="result-section">
+        <h3>Batch Results</h3>
+        <div class="batch-grid">
+            {% for item in qr_codes %}
+            <div class="batch-item">
+                <img src="{{ item.image }}" alt="QR Code">
+                <p>{{ item.text[:20] }}{% if item.text|length > 20 %}...{% endif %}</p>
+                <a href="{{ item.image }}" download="batch_qr_{{ loop.index }}.png" class="btn-mini">Download</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRGenie</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">QRGenie</div>
+        <ul class="nav-links">
+            <!-- UPDATED TEXT BELOW -->
+            <li><a href="{{ url_for('index') }}">QR Code Generator</a></li>
+            <li><a href="{{ url_for('batch') }}">Batch QR Code Generator</a></li>
+            <li><a href="{{ url_for('page1') }}">Instructions</a></li>
+            <li><a href="{{ url_for('page2') }}">About</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>QRGenie - Made by Zachory Pelletier</p>
+    </footer>
+
+</body>
+</html>
