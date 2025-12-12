@@ -1,27 +1,63 @@
 from flask import Flask, render_template, request, jsonify
 import qrcode
+from qrcode.image.styledpil import StyledPilImage
+from qrcode.image.styles.moduledrawers import (
+    SquareModuleDrawer,
+    GappedSquareModuleDrawer,
+    CircleModuleDrawer,
+    RoundedModuleDrawer,
+    VerticalBarsDrawer,
+    HorizontalBarsDrawer
+)
+from qrcode.image.styles.colormasks import SolidFillColorMask
 import io
 import base64
 
 app = Flask(__name__)
 
-# --- Helper Function ---
-def generate_qr_base64(text, size, color):
-    """Generates a Base64 string for a QR code."""
+# --- Helper: Hex to RGB ---
+def hex_to_rgb(hex_color):
+    """Converts #RRGGBB to (R, G, B) tuple."""
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+# --- Helper: Generate Base64 ---
+def generate_qr_base64(text, size, color, bg_color, border, shape):
+    """Generates a Base64 string for a QR code with shapes and colors."""
     try:
-        # Scale size logic: 1-20 slider maps to box_size
         box_size = int(size)
+        border_size = int(border)
         
+        # Map shape names to Drawer objects
+        drawers = {
+            'square': SquareModuleDrawer(),
+            'gapped': GappedSquareModuleDrawer(),
+            'circle': CircleModuleDrawer(),
+            'rounded': RoundedModuleDrawer(),
+            'vertical': VerticalBarsDrawer(),
+            'horizontal': HorizontalBarsDrawer()
+        }
+        selected_drawer = drawers.get(shape, SquareModuleDrawer())
+
+        # Convert colors for StyledPilImage
+        front_rgb = hex_to_rgb(color)
+        back_rgb = hex_to_rgb(bg_color)
+
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_H,
             box_size=box_size,
-            border=4,
+            border=border_size,
         )
         qr.add_data(text)
         qr.make(fit=True)
 
-        img = qr.make_image(fill_color=color, back_color="white")
+        # Use StyledPilImage to support Shapes (Drawers)
+        img = qr.make_image(
+            image_factory=StyledPilImage,
+            module_drawer=selected_drawer,
+            color_mask=SolidFillColorMask(front_color=front_rgb, back_color=back_rgb)
+        )
 
         buf = io.BytesIO()
         img.save(buf, format='PNG')
@@ -37,22 +73,22 @@ def generate_qr_base64(text, size, color):
 
 @app.route('/')
 def index():
-    # We no longer handle POST here for the main page, 
-    # because we are doing it via the API below.
     return render_template('index.html')
 
 @app.route('/api/generate', methods=['POST'])
 def api_generate():
-    """This endpoint handles the Real-Time updates via JavaScript"""
     data = request.json
     text = data.get('text', '')
     size = data.get('size', 10)
     color = data.get('color', '#000000')
+    bg_color = data.get('bg_color', '#ffffff')
+    border = data.get('border', 4)
+    shape = data.get('shape', 'square') # Default to square
 
     if not text:
         return jsonify({'success': False})
 
-    qr_image = generate_qr_base64(text, size, color)
+    qr_image = generate_qr_base64(text, size, color, bg_color, border, shape)
     return jsonify({'success': True, 'image': qr_image})
 
 @app.route('/batch', methods=['GET', 'POST'])
@@ -60,24 +96,40 @@ def batch():
     qr_codes = []
     error = None
     
-    if request.method == 'POST':
-        raw_text = request.form.get('batch_text')
-        size = request.form.get('size', 10)
-        color = request.form.get('color', '#000000')
+    # Defaults
+    form_data = {
+        'batch_text': '', 'size': 10, 'color': '#000000', 
+        'bg_color': '#ffffff', 'border': 4, 'shape': 'square'
+    }
 
-        # Split lines and filter empty ones
+    if request.method == 'POST':
+        form_data['batch_text'] = request.form.get('batch_text')
+        form_data['size'] = request.form.get('size', 10)
+        form_data['color'] = request.form.get('color', '#000000')
+        form_data['bg_color'] = request.form.get('bg_color', '#ffffff')
+        form_data['border'] = request.form.get('border', 4)
+        form_data['shape'] = request.form.get('shape', 'square')
+
+        raw_text = form_data['batch_text']
         lines = [line.strip() for line in raw_text.split('\n') if line.strip()]
 
         if len(lines) > 10:
-            error = "Limit exceeded: Please enter maximum 10 lines."
-            lines = lines[:10] # Enforce limit on processing anyway
+            error = "Limit exceeded: Maximum 10 QR codes allowed at once."
+            lines = lines[:10]
         
         for line in lines:
-            img = generate_qr_base64(line, size, color)
+            img = generate_qr_base64(
+                line, 
+                form_data['size'], 
+                form_data['color'], 
+                form_data['bg_color'],
+                form_data['border'],
+                form_data['shape']
+            )
             if img:
                 qr_codes.append({'text': line, 'image': img})
 
-    return render_template('batch.html', qr_codes=qr_codes, error=error)
+    return render_template('batch.html', qr_codes=qr_codes, error=error, form=form_data)
 
 @app.route('/instructions')
 def page1():

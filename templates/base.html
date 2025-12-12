@@ -12,7 +12,6 @@
     <nav class="navbar">
         <div class="logo">QRGenie</div>
         <ul class="nav-links">
-            <!-- UPDATED TEXT BELOW -->
             <li><a href="{{ url_for('index') }}">QR Code Generator</a></li>
             <li><a href="{{ url_for('batch') }}">Batch QR Code Generator</a></li>
             <li><a href="{{ url_for('page1') }}">Instructions</a></li>
@@ -22,6 +21,9 @@
 
     <!-- Main Content -->
     <main class="container">
+        <!-- ADDED WELCOME TEXT -->
+        <h2 style="text-align: center; color: #BB86FC; margin-bottom: 20px;">Welcome to QRGenie!</h2>
+        
         {% block content %}
         {% endblock %}
     </main>

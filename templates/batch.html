@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="card">
-    <h1>Batch Generator</h1>
-    <p>Generate up to <strong>10</strong> QR codes at once. Put each URL/Text on a new line.</p>
+    <h1>Batch QR Code Generator</h1>
+    <p style="margin-bottom: 20px; color: #aaa;">Enter up to 10 URLs/Texts (one per line).</p>
 
     {% if error %}
     <div style="background-color: #cf6679; color: black; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
@@ -11,25 +11,62 @@
     </div>
     {% endif %}
 
-    <form method="POST">
-        <div class="form-group">
-            <textarea name="batch_text" rows="10" placeholder="https://site1.com&#10;https://site2.com&#10;Text Message 3..." style="width: 100%; background: #2C2C2C; color: white; border: 1px solid #444; padding: 10px;"></textarea>
-        </div>
-
-        <div class="form-row">
+    <form method="POST" id="batchForm">
+        <div class="controls-section">
             <div class="form-group">
-                <label>Size:</label>
-                <input type="range" name="size" min="5" max="20" value="10">
+                <label for="batch_text">Batch Content:</label>
+                <textarea id="batch_text" name="batch_text" rows="6" placeholder="https://site1.com&#10;https://site2.com&#10;..." style="width: 100%; background: #2C2C2C; color: white; border: 1px solid #444; padding: 10px;">{{ form.batch_text }}</textarea>
             </div>
-            <div class="form-group">
-                <label>Color:</label>
-                <input type="color" name="color" value="#000000" style="width: 100%; height: 40px;">
-            </div>
-        </div>
 
-        <button type="submit" class="btn-primary">Generate Batch</button>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Size:</label>
+                    <input type="range" id="size" name="size" min="5" max="20" value="{{ form.size }}">
+                </div>
+                <div class="form-group">
+                    <label>Border Width:</label>
+                    <input type="range" id="border" name="border" min="0" max="10" value="{{ form.border }}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Shape:</label>
+                    <select id="shape" name="shape" style="width: 100%; padding: 12px; background: #2C2C2C; color: white; border: 1px solid #444; border-radius: 4px;">
+                        <option value="square" {% if form.shape == 'square' %}selected{% endif %}>Square</option>
+                        <option value="rounded" {% if form.shape == 'rounded' %}selected{% endif %}>Rounded Squares</option>
+                        <option value="circle" {% if form.shape == 'circle' %}selected{% endif %}>Dots / Circles</option>
+                        <option value="gapped" {% if form.shape == 'gapped' %}selected{% endif %}>Gapped</option>
+                        <option value="vertical" {% if form.shape == 'vertical' %}selected{% endif %}>Vertical Bars</option>
+                        <option value="horizontal" {% if form.shape == 'horizontal' %}selected{% endif %}>Horizontal Bars</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Body Color:</label>
+                    <input type="color" id="color" name="color" value="{{ form.color }}" style="width: 100%; height: 43px;">
+                </div>
+                <div class="form-group">
+                    <label>Bg Color:</label>
+                    <input type="color" id="bg_color" name="bg_color" value="{{ form.bg_color }}" style="width: 100%; height: 43px;">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary">Generate Batch (All)</button>
+        </div>
     </form>
 
+    <!-- LIVE PREVIEW PANE -->
+    <div class="preview-pane">
+        <h3 style="border-top: 1px solid #333; padding-top: 20px; margin-top: 20px;">Style Preview (First Item)</h3>
+        
+        <div id="placeholder-text" style="color: #666; font-style: italic; margin-bottom: 20px;">
+            Type in the box above to preview style...
+        </div>
+        
+        <img id="live-qr" class="qr-img" style="display: none; margin-bottom: 20px;">
+    </div>
+
+    <!-- BATCH RESULTS -->
     {% if qr_codes %}
     <div class="result-section">
         <h3>Batch Results</h3>
@@ -45,4 +82,61 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+    const batchInput = document.getElementById('batch_text');
+    const sizeInput = document.getElementById('size');
+    const colorInput = document.getElementById('color');
+    const bgInput = document.getElementById('bg_color');
+    const borderInput = document.getElementById('border');
+    const shapeInput = document.getElementById('shape');
+    
+    const imgEl = document.getElementById('live-qr');
+    const placeholder = document.getElementById('placeholder-text');
+
+    function updatePreview() {
+        const raw = batchInput.value;
+        const firstLine = raw.split('\n').find(line => line.trim() !== '');
+
+        if (!firstLine) {
+            imgEl.style.display = 'none';
+            placeholder.style.display = 'block';
+            return;
+        }
+
+        fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                text: firstLine, 
+                size: sizeInput.value, 
+                color: colorInput.value,
+                bg_color: bgInput.value,
+                border: borderInput.value,
+                shape: shapeInput.value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                placeholder.style.display = 'none';
+                imgEl.src = data.image;
+                imgEl.style.display = 'inline-block';
+            }
+        });
+    }
+
+    let timeout;
+    function debounceUpdate() {
+        clearTimeout(timeout);
+        timeout = setTimeout(updatePreview, 300);
+    }
+
+    batchInput.addEventListener('input', debounceUpdate);
+    sizeInput.addEventListener('input', updatePreview);
+    colorInput.addEventListener('input', updatePreview);
+    bgInput.addEventListener('input', updatePreview);
+    borderInput.addEventListener('input', updatePreview);
+    shapeInput.addEventListener('change', updatePreview);
+</script>
 {% endblock %}
