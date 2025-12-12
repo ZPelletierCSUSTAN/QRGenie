@@ -2,7 +2,8 @@
 
 {% block content %}
 <div class="card">
-    <h1>QR Code Generator</h1>
+    <!-- CENTERED TITLE -->
+    <h1 class="text-center">QR Code Generator</h1>
     
     <div class="controls-section">
         <div class="form-group">
@@ -10,7 +11,6 @@
             <input type="text" id="text" placeholder="Type here to see magic..." autocomplete="off">
         </div>
 
-        <!-- Row 1: Size & Border -->
         <div class="form-row">
             <div class="form-group">
                 <label for="size">Size:</label>
@@ -22,25 +22,27 @@
             </div>
         </div>
 
-        <!-- Row 2: Colors & Shape -->
         <div class="form-row">
             <div class="form-group">
                 <label for="shape">Shape Style:</label>
-                <select id="shape" style="width: 100%; padding: 12px; background: #2C2C2C; color: white; border: 1px solid #444; border-radius: 4px;">
-                    <option value="square">Square (Default)</option>
+                <!-- ADDED NEW SHAPES -->
+                <select id="shape" style="width: 100%;">
+                    <option value="square">Square (Standard)</option>
                     <option value="rounded">Rounded Squares</option>
                     <option value="circle">Dots / Circles</option>
                     <option value="gapped">Gapped Squares</option>
                     <option value="vertical">Vertical Bars</option>
                     <option value="horizontal">Horizontal Bars</option>
                 </select>
+                <small style="color: var(--text-muted); font-size: 0.8rem;">Change selection to preview style.</small>
             </div>
             <div class="form-group">
                 <label for="color">Body Color:</label>
                 <input type="color" id="color" value="#000000" style="width: 100%; height: 43px;">
             </div>
             <div class="form-group">
-                <label for="bg_color">Bg Color:</label>
+                <!-- UPDATED LABEL -->
+                <label for="bg_color">Background Color:</label>
                 <input type="color" id="bg_color" value="#ffffff" style="width: 100%; height: 43px;">
             </div>
         </div>
@@ -48,9 +50,9 @@
 
     <!-- PREVIEW PANE -->
     <div class="preview-pane">
-        <h3 style="border-top: 1px solid #333; padding-top: 20px; margin-top: 10px;">Live Preview</h3>
+        <h3 style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 10px;">Live Preview</h3>
         
-        <div id="placeholder-text" style="color: #666; font-style: italic; margin-bottom: 20px;">
+        <div id="placeholder-text" style="color: var(--text-muted); font-style: italic; margin-bottom: 20px;">
             Start typing above to generate...
         </div>
         
@@ -118,6 +120,6 @@
     borderInput.addEventListener('input', updateQR);
     colorInput.addEventListener('input', updateQR);
     bgInput.addEventListener('input', updateQR);
-    shapeInput.addEventListener('change', updateQR); // Listen for dropdown changes
+    shapeInput.addEventListener('change', updateQR);
 </script>
 {% endblock %}

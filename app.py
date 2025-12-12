@@ -18,6 +18,8 @@ app = Flask(__name__)
 # --- Helper: Hex to RGB ---
 def hex_to_rgb(hex_color):
     """Converts #RRGGBB to (R, G, B) tuple."""
+    if not hex_color:
+        return (0, 0, 0) # Default black
     hex_color = hex_color.lstrip('#')
     return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
@@ -28,7 +30,7 @@ def generate_qr_base64(text, size, color, bg_color, border, shape):
         box_size = int(size)
         border_size = int(border)
         
-        # Map shape names to Drawer objects
+        # Extended list of shapes
         drawers = {
             'square': SquareModuleDrawer(),
             'gapped': GappedSquareModuleDrawer(),
@@ -39,7 +41,7 @@ def generate_qr_base64(text, size, color, bg_color, border, shape):
         }
         selected_drawer = drawers.get(shape, SquareModuleDrawer())
 
-        # Convert colors for StyledPilImage
+        # Convert colors
         front_rgb = hex_to_rgb(color)
         back_rgb = hex_to_rgb(bg_color)
 
@@ -52,7 +54,6 @@ def generate_qr_base64(text, size, color, bg_color, border, shape):
         qr.add_data(text)
         qr.make(fit=True)
 
-        # Use StyledPilImage to support Shapes (Drawers)
         img = qr.make_image(
             image_factory=StyledPilImage,
             module_drawer=selected_drawer,
@@ -83,7 +84,7 @@ def api_generate():
     color = data.get('color', '#000000')
     bg_color = data.get('bg_color', '#ffffff')
     border = data.get('border', 4)
-    shape = data.get('shape', 'square') # Default to square
+    shape = data.get('shape', 'square')
 
     if not text:
         return jsonify({'success': False})

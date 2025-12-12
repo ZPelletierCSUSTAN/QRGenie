@@ -2,8 +2,9 @@
 
 {% block content %}
 <div class="card">
-    <h1>Batch QR Code Generator</h1>
-    <p style="margin-bottom: 20px; color: #aaa;">Enter up to 10 URLs/Texts (one per line).</p>
+    <!-- CENTERED TITLE -->
+    <h1 class="text-center">Batch QR Code Generator</h1>
+    <p class="text-center" style="margin-bottom: 20px; color: var(--text-muted);">Enter up to 10 URLs/Texts (one per line).</p>
 
     {% if error %}
     <div style="background-color: #cf6679; color: black; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
@@ -15,7 +16,7 @@
         <div class="controls-section">
             <div class="form-group">
                 <label for="batch_text">Batch Content:</label>
-                <textarea id="batch_text" name="batch_text" rows="6" placeholder="https://site1.com&#10;https://site2.com&#10;..." style="width: 100%; background: #2C2C2C; color: white; border: 1px solid #444; padding: 10px;">{{ form.batch_text }}</textarea>
+                <textarea id="batch_text" name="batch_text" rows="6" placeholder="https://site1.com&#10;https://site2.com&#10;..." style="width: 100%;">{{ form.batch_text }}</textarea>
             </div>
 
             <div class="form-row">
@@ -32,11 +33,12 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Shape:</label>
-                    <select id="shape" name="shape" style="width: 100%; padding: 12px; background: #2C2C2C; color: white; border: 1px solid #444; border-radius: 4px;">
-                        <option value="square" {% if form.shape == 'square' %}selected{% endif %}>Square</option>
+                    <!-- ADDED NEW SHAPES -->
+                    <select id="shape" name="shape" style="width: 100%;">
+                        <option value="square" {% if form.shape == 'square' %}selected{% endif %}>Square (Standard)</option>
                         <option value="rounded" {% if form.shape == 'rounded' %}selected{% endif %}>Rounded Squares</option>
                         <option value="circle" {% if form.shape == 'circle' %}selected{% endif %}>Dots / Circles</option>
-                        <option value="gapped" {% if form.shape == 'gapped' %}selected{% endif %}>Gapped</option>
+                        <option value="gapped" {% if form.shape == 'gapped' %}selected{% endif %}>Gapped Squares</option>
                         <option value="vertical" {% if form.shape == 'vertical' %}selected{% endif %}>Vertical Bars</option>
                         <option value="horizontal" {% if form.shape == 'horizontal' %}selected{% endif %}>Horizontal Bars</option>
                     </select>
@@ -46,7 +48,8 @@
                     <input type="color" id="color" name="color" value="{{ form.color }}" style="width: 100%; height: 43px;">
                 </div>
                 <div class="form-group">
-                    <label>Bg Color:</label>
+                    <!-- UPDATED LABEL -->
+                    <label>Background Color:</label>
                     <input type="color" id="bg_color" name="bg_color" value="{{ form.bg_color }}" style="width: 100%; height: 43px;">
                 </div>
             </div>
@@ -57,9 +60,9 @@
 
     <!-- LIVE PREVIEW PANE -->
     <div class="preview-pane">
-        <h3 style="border-top: 1px solid #333; padding-top: 20px; margin-top: 20px;">Style Preview (First Item)</h3>
+        <h3 style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 20px;">Style Preview (First Item)</h3>
         
-        <div id="placeholder-text" style="color: #666; font-style: italic; margin-bottom: 20px;">
+        <div id="placeholder-text" style="color: var(--text-muted); font-style: italic; margin-bottom: 20px;">
             Type in the box above to preview style...
         </div>
         
