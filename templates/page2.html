@@ -1,16 +1,15 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="card">
-    <!-- CENTERED TITLE -->
-    <h1 class="text-center">About QRGenie</h1>
-    <p>This is a Flask Python application designed to generate high-quality QR codes.</p>
-    
-    <p><strong>Made by:</strong> Zachory Pelletier</p>
-
-    <br>
-    <p>It was converted from a standard Python GUI script to a Web Application to run in the browser.</p>
-    <br>
-    <p><strong>Tech Stack:</strong> Python, Flask, Pillow (PIL), HTML/CSS.</p>
+<div class="card border-secondary shadow-lg">
+    <div class="card-body p-5">
+        <h1 class="text-center text-accent mb-4">Instructions</h1>
+        <ul class="list-group list-group-flush bg-transparent">
+            <li class="list-group-item bg-transparent text-light border-secondary"><strong>Step 1:</strong> Go to the QR Code Generator or Batch QR Code Generator tab.</li>
+            <li class="list-group-item bg-transparent text-light border-secondary"><strong>Step 2:</strong> Enter a URL (e.g., https://google.com) or plain text.</li>
+            <li class="list-group-item bg-transparent text-light border-secondary"><strong>Step 3:</strong> Use the sliders to increase the image size (resolution) and border width.</li>
+            <li class="list-group-item bg-transparent text-light border-secondary"><strong>Step 4:</strong> Pick a color for QR code and its border. You can also select different shapes.</li>
+            <li class="list-group-item bg-transparent text-light border-secondary"><strong>Step 5:</strong> Click "Generate" (if in Batch mode) and then "Save" to download.</li>
+        </ul>
+    </div>
 </div>
 {% endblock %}

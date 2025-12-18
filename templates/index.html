@@ -1,125 +1,50 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="card">
-    <!-- CENTERED TITLE -->
-    <h1 class="text-center">QR Code Generator</h1>
-    
-    <div class="controls-section">
-        <div class="form-group">
-            <label for="text">Content (URL or Text):</label>
-            <input type="text" id="text" placeholder="Type here to see magic..." autocomplete="off">
+<div class="card border-secondary shadow-lg">
+    <div class="card-body p-4">
+        <h1 class="text-center text-accent mb-4">QR Code Generator</h1>
+        <div class="mb-3">
+            <label class="form-label text-muted">Content (URL or Text):</label>
+            <input type="text" class="form-control" id="text" placeholder="Type here..." autocomplete="off">
         </div>
-
-        <div class="form-row">
-            <div class="form-group">
-                <label for="size">Size:</label>
-                <input type="range" id="size" min="5" max="20" value="10">
-            </div>
-            <div class="form-group">
-                <label for="border">Border Width:</label>
-                <input type="range" id="border" min="0" max="10" value="4">
-            </div>
+        <div class="row mb-3">
+            <div class="col-md-6"><label class="form-label text-muted">Size:</label><input type="range" class="form-range" id="size" min="5" max="20" value="10"></div>
+            <div class="col-md-6"><label class="form-label text-muted">Border Width:</label><input type="range" class="form-range" id="border" min="0" max="10" value="4"></div>
         </div>
-
-        <div class="form-row">
-            <div class="form-group">
-                <label for="shape">Shape Style:</label>
-                <!-- ADDED NEW SHAPES -->
-                <select id="shape" style="width: 100%;">
-                    <option value="square">Square (Standard)</option>
-                    <option value="rounded">Rounded Squares</option>
-                    <option value="circle">Dots / Circles</option>
-                    <option value="gapped">Gapped Squares</option>
-                    <option value="vertical">Vertical Bars</option>
-                    <option value="horizontal">Horizontal Bars</option>
+        <div class="row mb-3">
+            <div class="col-md-4"><label class="form-label text-muted">Shape:</label>
+                <select id="shape" class="form-select">
+                    <option value="square">Square</option><option value="rounded">Rounded</option>
+                    <option value="circle">Circle</option><option value="gapped">Gapped</option>
+                    <option value="vertical">Vertical</option><option value="horizontal">Horizontal</option>
                 </select>
-                <small style="color: var(--text-muted); font-size: 0.8rem;">Change selection to preview style.</small>
             </div>
-            <div class="form-group">
-                <label for="color">Body Color:</label>
-                <input type="color" id="color" value="#000000" style="width: 100%; height: 43px;">
-            </div>
-            <div class="form-group">
-                <!-- UPDATED LABEL -->
-                <label for="bg_color">Background Color:</label>
-                <input type="color" id="bg_color" value="#ffffff" style="width: 100%; height: 43px;">
-            </div>
+            <div class="col-md-4"><label class="form-label text-muted">Body Color:</label><input type="color" class="form-control form-control-color w-100" id="color" value="#000000"></div>
+            <div class="col-md-4"><label class="form-label text-muted">Background Color:</label><input type="color" class="form-control form-control-color w-100" id="bg_color" value="#ffffff"></div>
         </div>
-    </div>
-
-    <!-- PREVIEW PANE -->
-    <div class="preview-pane">
-        <h3 style="border-top: 1px solid var(--border-color); padding-top: 20px; margin-top: 10px;">Live Preview</h3>
-        
-        <div id="placeholder-text" style="color: var(--text-muted); font-style: italic; margin-bottom: 20px;">
-            Start typing above to generate...
+        <div class="preview-pane text-center mt-4 pt-4 border-top border-secondary">
+            <h3 class="text-accent">Live Preview</h3>
+            <div id="placeholder" class="text-muted fst-italic my-4">Start typing above to generate...</div>
+            <img id="live-qr" class="qr-img img-fluid" style="display: none;">
+            <br><a id="download-link" href="#" class="btn btn-primary mt-3" style="display: none;">Save QR Code</a>
         </div>
-        
-        <img id="live-qr" class="qr-img" style="display: none;">
-        
-        <br>
-        <a id="download-link" href="#" class="btn-secondary" style="display: none;">Save QR Code</a>
     </div>
 </div>
-
 <script>
-    const textInput = document.getElementById('text');
-    const sizeInput = document.getElementById('size');
-    const borderInput = document.getElementById('border');
-    const colorInput = document.getElementById('color');
-    const bgInput = document.getElementById('bg_color');
-    const shapeInput = document.getElementById('shape');
-    
-    const imgEl = document.getElementById('live-qr');
-    const dlLink = document.getElementById('download-link');
-    const placeholder = document.getElementById('placeholder-text');
+    const ids = ['text', 'size', 'border', 'color', 'bg_color', 'shape'];
+    const els = ids.map(id => document.getElementById(id));
+    const [txt, sz, brd, col, bg, shp] = els;
+    const img = document.getElementById('live-qr'), dl = document.getElementById('download-link'), ph = document.getElementById('placeholder');
 
-    function updateQR() {
-        const text = textInput.value;
-        const size = sizeInput.value;
-        const color = colorInput.value;
-        const bgColor = bgInput.value;
-        const border = borderInput.value;
-        const shape = shapeInput.value;
-
-        if (text.trim() === "") {
-            imgEl.style.display = 'none';
-            dlLink.style.display = 'none';
-            placeholder.style.display = 'block';
-            return;
-        }
-
+    function up() {
+        if (!txt.value.trim()) { img.style.display='none'; dl.style.display='none'; ph.style.display='block'; return; }
         fetch('/api/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                text: text, 
-                size: size, 
-                color: color, 
-                bg_color: bgColor,
-                border: border,
-                shape: shape
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                placeholder.style.display = 'none';
-                imgEl.src = data.image;
-                imgEl.style.display = 'inline-block';
-                dlLink.href = data.image;
-                dlLink.download = "qr_genie.png";
-                dlLink.style.display = 'inline-block';
-            }
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: txt.value, size: sz.value, border: brd.value, color: col.value, bg_color: bg.value, shape: shp.value})
+        }).then(r=>r.json()).then(d=>{
+            if(d.success){ ph.style.display='none'; img.src=d.image; img.style.display='inline-block'; dl.href=d.image; dl.download='qr_genie.png'; dl.style.display='inline-block'; }
         });
     }
-
-    textInput.addEventListener('input', updateQR);
-    sizeInput.addEventListener('input', updateQR);
-    borderInput.addEventListener('input', updateQR);
-    colorInput.addEventListener('input', updateQR);
-    bgInput.addEventListener('input', updateQR);
-    shapeInput.addEventListener('change', updateQR);
+    els.forEach(el => el.addEventListener(el.tagName==='SELECT'?'change':'input', up));
 </script>
 {% endblock %}

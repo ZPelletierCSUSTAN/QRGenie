@@ -1,15 +1,65 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="card">
-    <!-- CENTERED TITLE -->
-    <h1 class="text-center">Instructions</h1>
-    <ul class="list" style="list-style: none;">
-        <li><strong>Step 1:</strong> Go to the QR Code Generator or Batch QR Code Generator tab.</li>
-        <li style="margin-top: 10px;"><strong>Step 2:</strong> Enter a URL (e.g., https://google.com) or plain text.</li>
-        <li style="margin-top: 10px;"><strong>Step 3:</strong> Use the sliders to increase the image size (resolution) and border width.</li>
-        <li style="margin-top: 10px;"><strong>Step 4:</strong> Pick a color for QR code and its border (Dark colors on white backgrounds scan best). You can also select different shapes (Rounded, Circles, etc.).</li>
-        <li style="margin-top: 10px;"><strong>Step 5:</strong> Click "Generate" (if in Batch mode) and then "Save" to download your generated QR code as a PNG.</li>
-    </ul>
+<div class="card border-secondary shadow-lg">
+    <div class="card-body p-4">
+        <h1 class="text-center text-accent">Batch QR Code Generator</h1>
+        <p class="text-center text-muted mb-4">Enter up to 10 URLs/Texts (one per line).</p>
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+        <form method="POST">
+            <div class="mb-3"><label class="form-label text-muted">Batch Content:</label><textarea class="form-control" id="batch_text" name="batch_text" rows="6">{{ form.batch_text }}</textarea></div>
+            <div class="row mb-3">
+                <div class="col-md-6"><label class="form-label text-muted">Size:</label><input type="range" class="form-range" id="size" name="size" min="5" max="20" value="{{ form.size }}"></div>
+                <div class="col-md-6"><label class="form-label text-muted">Border:</label><input type="range" class="form-range" id="border" name="border" min="0" max="10" value="{{ form.border }}"></div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-4"><label class="form-label text-muted">Shape:</label>
+                    <select id="shape" name="shape" class="form-select">
+                        <option value="square" {% if form.shape=='square' %}selected{% endif %}>Square</option>
+                        <option value="rounded" {% if form.shape=='rounded' %}selected{% endif %}>Rounded</option>
+                        <option value="circle" {% if form.shape=='circle' %}selected{% endif %}>Circle</option>
+                        <option value="gapped" {% if form.shape=='gapped' %}selected{% endif %}>Gapped</option>
+                        <option value="vertical" {% if form.shape=='vertical' %}selected{% endif %}>Vertical</option>
+                        <option value="horizontal" {% if form.shape=='horizontal' %}selected{% endif %}>Horizontal</option>
+                    </select>
+                </div>
+                <div class="col-md-4"><label class="form-label text-muted">Body Color:</label><input type="color" class="form-control form-control-color w-100" id="color" name="color" value="{{ form.color }}"></div>
+                <div class="col-md-4"><label class="form-label text-muted">Bg Color:</label><input type="color" class="form-control form-control-color w-100" id="bg_color" name="bg_color" value="{{ form.bg_color }}"></div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 fw-bold">Generate Batch</button>
+        </form>
+        <div class="preview-pane text-center mt-4 pt-4 border-top border-secondary">
+            <h3 class="text-accent">Style Preview (First Item)</h3>
+            <div id="ph" class="text-muted fst-italic my-3">Type above to preview...</div>
+            <img id="live-qr" class="qr-img img-fluid mb-3" style="display: none;">
+        </div>
+        {% if qr_codes %}
+        <div class="result-section mt-5 border-top border-secondary pt-4">
+            <h3 class="text-center text-accent mb-4">Batch Results</h3>
+            <div class="batch-grid">
+                {% for item in qr_codes %}
+                <div class="batch-item">
+                    <img src="{{ item.image }}" alt="QR"><p class="text-muted small mt-2 mb-1 text-truncate">{{ item.text }}</p>
+                    <a href="{{ item.image }}" download="batch_{{ loop.index }}.png" class="btn btn-sm btn-primary d-block">Download</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
+<script>
+    const inputs = ['batch_text','size','border','color','bg_color','shape'].map(id=>document.getElementById(id));
+    const [txt, sz, brd, col, bg, shp] = inputs;
+    const img = document.getElementById('live-qr'), ph = document.getElementById('ph');
+    function up() {
+        const line = txt.value.split('\n').find(l=>l.trim());
+        if(!line) { img.style.display='none'; ph.style.display='block'; return; }
+        fetch('/api/generate', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({text:line, size:sz.value, border:brd.value, color:col.value, bg_color:bg.value, shape:shp.value})
+        }).then(r=>r.json()).then(d=>{ if(d.success){ ph.style.display='none'; img.src=d.image; img.style.display='inline-block'; }});
+    }
+    let t; txt.addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(up, 300); });
+    inputs.slice(1).forEach(el=>el.addEventListener('input', up));
+</script>
 {% endblock %}
