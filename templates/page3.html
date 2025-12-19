@@ -1,13 +1,26 @@
-{% extends "base.html" %}
+{% extends "page5.html" %}
 {% block content %}
-<div class="card border-secondary shadow-lg">
-    <div class="card-body p-5 text-center">
-        <h1 class="text-center text-accent mb-4">About QRGenie</h1>
-        <p class="lead">This is a Flask Python application designed to generate high-quality QR codes.</p>
-        <p class="fs-5"><strong>Made by:</strong> Zachory Pelletier</p>
-        <hr class="border-secondary my-4">
-        <p>It was converted from a standard Python GUI script to a Web Application to run in the browser.</p>
-        <p class="text-muted"><strong>Tech Stack:</strong> Python, Flask, Pillow (PIL), Bootstrap 5 (Cyborg).</p>
+<div class="card shadow-lg">
+    <div class="card-body p-5">
+        <h1 class="text-center text-accent mb-4">Instructions</h1>
+        <ul class="list-group list-group-flush bg-transparent">
+            <li class="list-group-item bg-transparent border-secondary text-accent">
+                <strong>Step 1:</strong> Go to the QR Code Generator or Batch QR Code Generator tab.
+            </li>
+            <li class="list-group-item bg-transparent border-secondary text-accent">
+                <strong>Step 2:</strong> Enter text. On the Batch page, you can enter multiple lines (up to 10).
+            </li>
+            <li class="list-group-item bg-transparent border-secondary text-accent">
+                <!-- UPDATED STEP 3 -->
+                <strong>Step 3:</strong> When you choose your QR code Color and Shape it will show up in the live preview. In the Batch page choose Apply Setting To All QR codes or edit them individually.
+            </li>
+            <li class="list-group-item bg-transparent border-secondary text-accent">
+                <strong>Step 4:</strong> Click Generate. On the Batch page, you will see a grid of previews. If there is issues with your live preview then refresh the page.
+            </li>
+            <li class="list-group-item bg-transparent border-secondary text-accent">
+                <strong>Step 5:</strong> Click the Red 'X' to remove codes you don't want. Click "Edit" on a card to change just that specific code. Click "Save" to download.
+            </li>
+        </ul>
     </div>
 </div>
 {% endblock %}
