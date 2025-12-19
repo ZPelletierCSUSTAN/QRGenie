@@ -63,23 +63,23 @@ def generate_qr_base64(text, size, color, bg_color, border, shape):
 
 @app.route('/')
 def index():
-    # Main Generator
-    return render_template('page1.html')
+    # Home / Single Generator
+    return render_template('index.html')
 
 @app.route('/batch')
 def batch():
     # Batch Generator
-    return render_template('page2.html')
+    return render_template('page1.html')
 
 @app.route('/instructions')
 def instructions():
     # Instructions
-    return render_template('page3.html')
+    return render_template('page2.html')
 
 @app.route('/about')
 def about():
     # About
-    return render_template('page4.html')
+    return render_template('page3.html')
 
 @app.route('/api/generate', methods=['POST'])
 def api_generate():

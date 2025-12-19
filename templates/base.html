@@ -17,7 +17,6 @@
             <a class="navbar-brand fs-1 fw-bold mb-3" href="#">QRGenie</a>
             
             <div class="navbar-nav d-flex flex-row gap-4 flex-wrap justify-content-center">
-                <!-- Links map to functions in app.py -->
                 <a class="nav-link fs-5" href="{{ url_for('index') }}">QR Code Generator</a>
                 <a class="nav-link fs-5" href="{{ url_for('batch') }}">Batch QR Code Generator</a>
                 <a class="nav-link fs-5" href="{{ url_for('instructions') }}">Instructions</a>
@@ -31,7 +30,7 @@
         <!-- Welcome Header -->
         <h2 class="text-center mb-4 text-accent fs-4">Welcome to QRGenie! A QR Code Generator App By Zachory Pelletier!</h2>
         
-        <!-- Child templates (page1, page2, etc.) inject content here -->
+        <!-- Content Block -->
         {% block content %}
         {% endblock %}
     </main>

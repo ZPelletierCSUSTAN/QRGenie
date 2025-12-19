@@ -1,97 +1,161 @@
-{% extends "page5.html" %}
+{% extends "base.html" %}
 {% block content %}
 <div class="card shadow-lg">
     <div class="card-body p-4">
-        <h1 class="text-center text-accent mb-4">QR Code Generator</h1>
+        <h1 class="text-center text-accent mb-4">Batch QR Code Generator</h1>
         
+        <!-- GLOBAL CONTROLS -->
+        <div class="border-bottom border-secondary pb-4 mb-4">
+            <h5 class="text-accent mb-3">Global Settings</h5>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label text-muted">Shape:</label>
+                    <select id="global-shape" class="form-select">
+                        <option value="square">Square</option>
+                        <option value="rounded">Rounded</option>
+                        <option value="circle">Circle</option>
+                        <option value="gapped">Gapped</option>
+                        <option value="vertical">Vertical</option>
+                        <option value="horizontal">Horizontal</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-muted">QR Color (Basic):</label>
+                    <input type="color" id="global-color" class="form-control form-control-color w-100" value="#000000">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-muted">Size:</label>
+                    <input type="range" class="form-range" id="global-size" min="5" max="20" value="10">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-muted">Border:</label>
+                    <input type="range" class="form-range" id="global-border" min="0" max="10" value="4">
+                </div>
+            </div>
+            <!-- UPDATED BUTTON TEXT AND COLOR -->
+            <button onclick="applyGlobalSettings()" class="btn btn-outline-primary w-100 btn-sm">Apply Settings To All</button>
+        </div>
+
+        <!-- INPUT AREA -->
         <div class="mb-3">
-            <label for="text" class="form-label text-muted">Content (URL or Text):</label>
-            <input type="text" class="form-control" id="text" placeholder="Type here..." autocomplete="off">
+            <label class="form-label text-muted">Enter Text (Up to 10 lines):</label>
+            <textarea id="batch-input" class="form-control" rows="4" placeholder="https://site1.com&#10;https://site2.com"></textarea>
+            <div id="error-msg" class="alert alert-danger mt-2" style="display:none;"></div>
         </div>
+        <button onclick="generateBatch()" class="btn btn-primary w-100 mb-4">Generate Batch</button>
 
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label for="size" class="form-label text-muted">Size:</label>
-                <input type="range" class="form-range" id="size" min="5" max="20" value="10">
-            </div>
-            <div class="col-md-6">
-                <label for="border" class="form-label text-muted">Border Width:</label>
-                <input type="range" class="form-range" id="border" min="0" max="10" value="4">
-            </div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <label for="shape" class="form-label text-muted">Shape Style:</label>
-                <select id="shape" class="form-select">
-                    <option value="square">Square</option><option value="rounded">Rounded</option>
-                    <option value="circle">Circle</option><option value="gapped">Gapped</option>
-                    <option value="vertical">Vertical</option><option value="horizontal">Horizontal</option>
-                </select>
-            </div>
-            <div class="col-md-4">
-                <label for="color" class="form-label text-muted">Body Color:</label>
-                <input type="color" class="form-control form-control-color w-100" id="color" value="#000000">
-            </div>
-            <div class="col-md-4">
-                <label for="bg_color" class="form-label text-muted">Background Color:</label>
-                <input type="color" class="form-control form-control-color w-100" id="bg_color" value="#ffffff">
-            </div>
-        </div>
-        
-        <div class="preview-pane text-center mt-4 pt-4 border-top border-secondary">
-            <h3 class="text-accent">Live Preview</h3>
-            <div id="placeholder-text" class="text-muted fst-italic my-4">Start typing above to generate...</div>
-            <img id="live-qr" class="qr-img img-fluid" style="display: none;">
-            <br>
-            <a id="download-link" href="#" class="btn btn-primary mt-3" style="display: none;">Save QR Code</a>
-        </div>
+        <!-- BATCH GRID AREA -->
+        <div id="batch-container" class="batch-container"></div>
+        <div id="empty-state" class="text-center text-muted fst-italic mt-5">No QR codes generated yet...</div>
     </div>
 </div>
+
 <script>
-    const textInput = document.getElementById('text');
-    const sizeInput = document.getElementById('size');
-    const borderInput = document.getElementById('border');
-    const colorInput = document.getElementById('color');
-    const bgInput = document.getElementById('bg_color');
-    const shapeInput = document.getElementById('shape');
+    let qrList = []; let nextId = 1;
     
-    const imgEl = document.getElementById('live-qr');
-    const dlLink = document.getElementById('download-link');
-    const placeholder = document.getElementById('placeholder-text');
-
-    function updateQR() {
-        const text = textInput.value;
-        if (text.trim() === "") {
-            imgEl.style.display = 'none';
-            dlLink.style.display = 'none';
-            placeholder.style.display = 'block';
-            return;
-        }
-
-        fetch('/api/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                text: text, size: sizeInput.value, color: colorInput.value, 
-                bg_color: bgInput.value, border: borderInput.value, shape: shapeInput.value
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                placeholder.style.display = 'none';
-                imgEl.src = data.image;
-                imgEl.style.display = 'inline-block';
-                dlLink.href = data.image;
-                dlLink.download = "qr_genie.png";
-                dlLink.style.display = 'inline-block';
-            }
-        });
+    function getGlobalSettings() {
+        return {
+            size: document.getElementById('global-size').value,
+            border: document.getElementById('global-border').value,
+            color: document.getElementById('global-color').value,
+            shape: document.getElementById('global-shape').value,
+            bg_color: '#ffffff' // Enforce white background for batch
+        };
     }
 
-    [textInput, sizeInput, borderInput, colorInput, bgInput, shapeInput].forEach(input => {
-        input.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', updateQR);
-    });
+    function generateBatch() {
+        const text = document.getElementById('batch-input').value;
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+
+        if (lines.length > 10) {
+            document.getElementById('error-msg').textContent = "Error: Limit of 10 items exceeded.";
+            document.getElementById('error-msg').style.display = 'block'; 
+            return;
+        } else { 
+            document.getElementById('error-msg').style.display = 'none'; 
+        }
+
+        const settings = getGlobalSettings();
+        
+        // Add new items
+        lines.forEach(line => { 
+            qrList.push({ id: nextId++, text: line, ...settings }); 
+        });
+
+        document.getElementById('batch-input').value = ""; 
+        renderGrid();
+    }
+
+    async function renderGrid() {
+        const container = document.getElementById('batch-container');
+        const emptyState = document.getElementById('empty-state');
+        container.innerHTML = "";
+
+        if (qrList.length === 0) { 
+            emptyState.style.display = 'block'; 
+            return; 
+        } else { 
+            emptyState.style.display = 'none'; 
+        }
+
+        for (let item of qrList) {
+            const response = await fetch('/api/generate', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(item)
+            });
+            const data = await response.json();
+
+            const card = document.createElement('div');
+            card.className = 'batch-card';
+            card.innerHTML = `
+                <button onclick="deleteItem(${item.id})" class="btn-delete" title="Remove">X</button>
+                <img src="${data.image}" alt="QR Code">
+                <div class="text-truncate" title="${item.text}">${item.text}</div>
+                <div class="d-flex gap-2 mt-2 w-100">
+                    <a href="${data.image}" download="qr_${item.id}.png" class="btn btn-sm btn-primary flex-grow-1">Save</a>
+                    <button onclick="toggleEdit(${item.id})" class="btn btn-sm btn-outline-secondary">Edit</button>
+                </div>
+                
+                <!-- Edit Panel -->
+                <div id="edit-${item.id}" class="edit-panel">
+                    <label>Color:</label>
+                    <input type="color" class="form-control form-control-color w-100 mb-2" value="${item.color}" onchange="updateItem(${item.id}, 'color', this.value)">
+                    <label>Shape:</label>
+                    <select class="form-select form-select-sm" onchange="updateItem(${item.id}, 'shape', this.value)">
+                        <option value="square" ${item.shape === 'square' ? 'selected' : ''}>Square</option>
+                        <option value="rounded" ${item.shape === 'rounded' ? 'selected' : ''}>Rounded</option>
+                        <option value="circle" ${item.shape === 'circle' ? 'selected' : ''}>Circle</option>
+                        <option value="gapped" ${item.shape === 'gapped' ? 'selected' : ''}>Gapped</option>
+                        <option value="vertical" ${item.shape === 'vertical' ? 'selected' : ''}>Vertical</option>
+                        <option value="horizontal" ${item.shape === 'horizontal' ? 'selected' : ''}>Horizontal</option>
+                    </select>
+                </div>`;
+            container.appendChild(card);
+        }
+    }
+
+    function deleteItem(id) { 
+        qrList = qrList.filter(item => item.id !== id); 
+        renderGrid(); 
+    }
+
+    function updateItem(id, key, value) { 
+        const item = qrList.find(i => i.id === id); 
+        if (item) { 
+            item[key] = value; 
+            renderGrid(); 
+        } 
+    }
+
+    function toggleEdit(id) { 
+        const panel = document.getElementById(`edit-${id}`); 
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block'; 
+    }
+
+    function applyGlobalSettings() { 
+        const settings = getGlobalSettings(); 
+        qrList = qrList.map(item => ({ ...item, ...settings })); 
+        renderGrid(); 
+    }
 </script>
 {% endblock %}
