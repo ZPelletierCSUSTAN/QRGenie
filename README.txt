@@ -1,5 +1,7 @@
 QRGenie is a app made by Zachory Pelletier. Created using Gemini Pro 3 Pro Preview AI model using Google AI Studio.
 
+QRGenie is a sleek, dark-themed Flask web application developed by Zachory Pelletier that features real-time single and batch QR code generation with advanced shape, color, and border customization options.
+
 File Mapping for QRGenie
 QRGenie/
 ├── app.py
